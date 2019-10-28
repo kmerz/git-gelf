@@ -136,7 +136,6 @@ main = do
     gitLogs <- getContents
     hostName <- getHostName
     let gitLogEntries = parseContents gitLogs
---    mapM (print) $ (map encode) (map (convertToGelf hostName) y)
     withSocketsDo $ do
       (server:_) <- getAddrInfo Nothing (Just "172.30.200.208") (Just "5555")
       s <-socket (addrFamily server) Datagram defaultProtocol
