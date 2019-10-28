@@ -28,7 +28,7 @@ data GitLogEntry = GitLogEntry
   { gitHash :: String
   , authorName :: String
   , authorEmail :: String
-  , authorDate :: DateTime 
+  , authorDate :: DateTime
   , authorTimestamp :: String
   , subject :: String
   } deriving (Show)
@@ -125,7 +125,7 @@ parseContents gitLogs = rights $ map (parse parseGitLog "" . T.pack) (lines gitL
 convertToGelf :: String -> GitLogEntry -> GelfGitLog
 convertToGelf hostName gitLogEntry = GelfGitLog
   { version = "1.1"
-  , host = hostName 
+  , host = hostName
   , short_message = subject gitLogEntry
   , timestamp = authorTimestamp gitLogEntry
   , _hash = gitHash gitLogEntry
@@ -143,4 +143,3 @@ main = do
       connect s (addrAddress server)
       mapM_ ((send s . encode) . convertToGelf hostName) gitLogEntries
       close s
-      
