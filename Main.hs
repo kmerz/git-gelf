@@ -4,14 +4,16 @@ module Main (main) where
 
 import           Control.Applicative
 import           Control.Monad
+import           Data.Dates
+import           Data.Either                (rights)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Data.Void
-import           Data.Dates
 import           Text.Megaparsec            hiding (State)
 import qualified Text.Megaparsec            as Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+
 
 type Parser = Parsec Void Text
 
@@ -22,6 +24,13 @@ data GitLogEntry = GitLogEntry
   , authorDate :: DateTime 
   , subject :: String
   } deriving (Show)
+
+data GelfGitLog = GelfGitLog
+  { version :: String,
+    host :: String,
+    short_message :: String,
+    timestamp :: 
+  }
 
 parseEmail :: Parser String
 parseEmail = Megaparsec.some (alphaNumChar <|> char '@' <|> char '.')
@@ -70,10 +79,34 @@ parseGitLog = do
   subject <- Megaparsec.some printChar
   return GitLogEntry{..}
 
+emptyDateTime :: DateTime
+emptyDateTime = DateTime
+  { year = 0
+  , month = 0
+  , day = 0
+  , hour = 0
+  , minute = 0
+  , second = 0
+  }
+
+emptyGitLogEntry :: GitLogEntry
+emptyGitLogEntry = GitLogEntry
+  { gitHash = "empty"
+  , authorName = "empty"
+  , authorDate = emptyDateTime
+  , authorEmail = "empty"
+  , subject = ""
+  }
+
+fromRight :: b -> Either a b -> b
+fromRight defaultValue either = case either of
+    Left _ -> defaultValue
+    Right val -> val
+
+parseContents :: String -> [GitLogEntry]
+parseContents gitLogs = rights $ map (parse parseGitLog "" . T.pack) (lines gitLogs)
+
 main = do
     gitLogs <- getContents
-    let logLines = lines gitLogs
-    let logText = map T.pack logLines
-    x <- mapM (parse parseGitLog) logText
-
-
+    let y = parseContents gitLogs
+    mapM (print . show)  y
